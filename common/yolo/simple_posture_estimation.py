@@ -12,10 +12,11 @@ class PoseType:
 
 class SimpleBodyPosture:
 
-    def __init__(self, pose: YoloPose, alpha=70.0, beta=140.0):
+    def __init__(self, pose: YoloPose, conf_threshold=0.5, alpha=70.0, beta=140.0):
         self.pose = pose
         self.alpha = alpha
         self.beta = beta
+        self.conf_threshold = conf_threshold
 
 
     @staticmethod
@@ -45,6 +46,12 @@ class SimpleBodyPosture:
         knee_left = self.pose.pts[13]
         knee_right = self.pose.pts[14]
 
+        # 确定上述关键点的置信度
+        if shoulder_left.conf < self.conf_threshold or shoulder_right.conf < self.conf_threshold or \
+                hip_left.conf < self.conf_threshold or hip_right.conf < self.conf_threshold or \
+                knee_left.conf < self.conf_threshold or knee_right.conf < self.conf_threshold:
+            return -1  # 如果任何关键点的置信度低于阈值，则返回-1
+
         # 计算肩膀、髋部和膝盖的平均点，生成 YoloPoint 实例
         shoulder_avg = YoloPoint(
             x=(shoulder_left.x + shoulder_right.x) / 2,
@@ -71,6 +78,10 @@ class SimpleBodyPosture:
 
         # 体の角度を測る「はかる」
         angle = self.body_angle()
+
+        # 角度が-1の場合、姿勢は不明です。
+        if angle == -1:
+            return PoseType.Unknown
 
         # 閾値「しきいち」を使用して、姿勢を決定「けってい」します。
         if angle > self.beta:  # 接近180°角时，通常表示站立
