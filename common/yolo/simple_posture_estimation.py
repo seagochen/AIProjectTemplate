@@ -94,13 +94,14 @@ class SimpleBodyPosture:
             return PoseType.Unknown  # 未知姿势
         
 
-def detect_body_postures(results: List[YoloPose], return_type="str") -> List:
+def detect_body_postures(results: List[YoloPose], return_type="str", 
+                        conf_threshold: float=0.5, alpha: float=70.0, beta: float=140.0) -> List:
     """
     从 YOLO 检测结果中提取人体姿势信息。
     """
     body_postures = []
     for result in results:
-        body_posture = SimpleBodyPosture(pose=result)
+        body_posture = SimpleBodyPosture(pose=result, alpha=alpha, beta=beta, conf_threshold=conf_threshold)
 
         if return_type == "int":
             str_posture = body_posture.body_pose()
@@ -119,12 +120,13 @@ def detect_body_postures(results: List[YoloPose], return_type="str") -> List:
     return body_postures
 
 
-def detect_body_angles(results: List[YoloPose]) -> List[float]:
+def detect_body_angles(results: List[YoloPose], 
+                       conf_threshold: float=0.5, alpha: float=70.0, beta: float=140.0) -> List[float]:
     """
     从 YOLO 检测结果中提取人体角度信息。
     """
     body_angles = []
     for result in results:
-        body_posture = SimpleBodyPosture(pose=result)
+        body_posture = SimpleBodyPosture(pose=result, alpha=alpha, beta=beta, conf_threshold=conf_threshold)
         body_angles.append(body_posture.body_angle())
     return body_angles
