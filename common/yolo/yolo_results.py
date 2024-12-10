@@ -1,190 +1,87 @@
 import json
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass, field, asdict, astuple
+from typing import List, Union, Any, Type, TypeVar
+
+T = TypeVar('T', bound='YoloBase')
 
 
 @dataclass
-class Yolo:
-    lx: int
-    ly: int
-    rx: int
-    ry: int
-    cls: int
-    conf: float
-
-    def __init__(self, lx: int = 0, ly: int = 0, rx: int = 0, ry: int = 0, cls: int = 0, conf: float = 0.0):
-        self.lx = lx
-        self.ly = ly
-        self.rx = rx
-        self.ry = ry
-        self.cls = cls
-        self.conf = conf
-
-    def to_list(self):
-        """Converts the Yolo object to a list."""
-        return [self.lx, self.ly, self.rx, self.ry, self.cls, self.conf]
-
-    def from_list(self, data: List):
-        """Creates a Yolo object from a list."""
-        self.lx = data[0]
-        self.ly = data[1]
-        self.rx = data[2]
-        self.ry = data[3]
-        self.cls = data[4]
-        self.conf = data[5]
-
-    def to_dict(self):
-        """Converts the Yolo object to a dictionary."""
-        return {
-            "lx": self.lx,
-            "ly": self.ly,
-            "rx": self.rx,
-            "ry": self.ry,
-            "cls": self.cls,
-            "conf": self.conf
-        }
-
-    def from_dict(self, data: dict):
-        """Creates a Yolo object from a dictionary."""
-        self.lx = data["lx"]
-        self.ly = data["ly"]
-        self.rx = data["rx"]
-        self.ry = data["ry"]
-        self.cls = data["cls"]
-        self.conf = data["conf"]
-
-    def to_json(self):
-        """Converts the Yolo object to a JSON string."""
-        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
-
-    @staticmethod
-    def from_json(data: str):
-        """Creates a Yolo object or a list of Yolo objects from a JSON string."""
-        data_list = json.loads(data)
-        if isinstance(data_list, list):
-            return [Yolo(**item) for item in data_list]
+class YoloBase:
+    """基类，提供通用的序列化和反序列化方法。"""
+    
+    def to_list(self) -> List[Any]:
+        return astuple(self)
+    
+    def to_dict(self) -> dict:
+        return asdict(self)
+    
+    def to_json(self, indent: int = 4) -> str:
+        return json.dumps(self.to_dict(), indent=indent)
+    
+    @classmethod
+    def from_list(cls: Type[T], data: List[Any]) -> T:
+        return cls(*data)
+    
+    @classmethod
+    def from_dict(cls: Type[T], data: dict) -> T:
+        return cls(**data)
+    
+    @classmethod
+    def from_json(cls: Type[T], data: str) -> Union[T, List[T]]:
+        try:
+            data_parsed = json.loads(data)
+        except json.JSONDecodeError as e:
+            raise ValueError("Invalid JSON data") from e
+        
+        if isinstance(data_parsed, list):
+            return [cls.from_dict(item) for item in data_parsed]
+        elif isinstance(data_parsed, dict):
+            return cls.from_dict(data_parsed)
         else:
-            return Yolo(**data_list)
+            raise TypeError("JSON must represent a dict or a list of dicts")
 
 
 @dataclass
-class YoloPoint:
-    x: int
-    y: int
-    conf: float
+class Yolo(YoloBase):
+    lx: int = 0
+    ly: int = 0
+    rx: int = 0
+    ry: int = 0
+    cls: int = 0
+    conf: float = 0.0
 
-    def __init__(self, x: int = 0, y: int = 0, conf: float = 0.0):
-        self.x = x
-        self.y = y
-        self.conf = conf
 
-    def to_list(self):
-        """Converts the YoloPoint object to a list."""
-        return [self.x, self.y, self.conf]
-
-    def from_list(self, data: List):
-        """Creates a YoloPoint object from a list."""
-        self.x = data[0]
-        self.y = data[1]
-        self.conf = data[2]
-
-    def to_dict(self):
-        """Converts the YoloPoint object to a dictionary."""
-        return {
-            "x": self.x,
-            "y": self.y,
-            "conf": self.conf
-        }
-
-    def from_dict(self, data: dict):
-        """Creates a YoloPoint object from a dictionary."""
-        self.x = data["x"]
-        self.y = data["y"]
-        self.conf = data["conf"]
-
-    def to_json(self):
-        """Converts the YoloPoint object to a JSON string."""
-        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
-
-    @staticmethod
-    def from_json(data: str):
-        """Creates a YoloPoint object from a JSON string."""
-        data_dict = json.loads(data)
-        return YoloPoint(**data_dict)
+@dataclass
+class YoloPoint(YoloBase):
+    x: int = 0
+    y: int = 0
+    conf: float = 0.0
 
 
 @dataclass
 class YoloPose(Yolo):
-    pts: List[YoloPoint] = field(default_factory=list)
-
-    def __init__(self, lx: int = 0, ly: int = 0, rx: int = 0, ry: int = 0, cls: int = 0, conf: float = 0.0, pts: List[YoloPoint] = None):
-        self.lx = lx
-        self.ly = ly
-        self.rx = rx
-        self.ry = ry
-        self.cls = cls
-        self.conf = conf
-
-        # Ensure self.pts is always initialized
-        self.pts = pts if pts is not None else [YoloPoint() for _ in range(17)]
-
-    def to_list(self):
-        """Converts the YoloPose object to a list."""
-        return [self.lx, self.ly, self.rx, self.ry, self.cls, self.conf, [pt.to_list() for pt in self.pts]]
-
-    def from_list(self, data: List):
-        """Creates a YoloPose object from a list."""
-        self.lx = data[0]
-        self.ly = data[1]
-        self.rx = data[2]
-        self.ry = data[3]
-        self.cls = data[4]
-        self.conf = data[5]
-
-        # Create a list to store the keypoints
-        self.pts = [YoloPoint(*pt) for pt in data[6]]
-
-    def to_dict(self):
-        """Converts the YoloPose object to a dictionary."""
-        return {
-            "lx": self.lx,
-            "ly": self.ly,
-            "rx": self.rx,
-            "ry": self.ry,
-            "cls": self.cls,
-            "conf": self.conf,
-            "pts": [pt.to_dict() for pt in self.pts]
-        }
-
-    def from_dict(self, data: dict):
-        """Creates a YoloPose object from a dictionary."""
-        self.lx = data["lx"]
-        self.ly = data["ly"]
-        self.rx = data["rx"]
-        self.ry = data["ry"]
-        self.cls = data["cls"]
-        self.conf = data["conf"]
-
-        # Create a list to store the keypoints
-        self.pts = [YoloPoint(**pt) for pt in data["pts"]]
-
-    def to_json(self):
-        """Converts the YoloPose object to a JSON string."""
-        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
-
-    @staticmethod
-    def from_json(data: str):
-        """Creates one or more YoloPose objects from a JSON string."""
-        data_list = json.loads(data)
-
-        # Helper function to process individual YoloPose objects
-        def parse_yolo_pose(data_dict):
-            pts_data = data_dict.pop("pts", [])
-            pts = [YoloPoint(**pt) for pt in pts_data]
-            return YoloPose(pts=pts, **data_dict)
-
-        # Check if data_list is a list or a single dict
-        if isinstance(data_list, list):
-            return [parse_yolo_pose(item) for item in data_list]
-        else:
-            return parse_yolo_pose(data_list)
+    pts: List[YoloPoint] = field(default_factory=lambda: [YoloPoint() for _ in range(17)])
+    
+    def to_list(self) -> List[Any]:
+        base_list = super().to_list()
+        pts_list = [pt.to_list() for pt in self.pts]
+        return base_list + [pts_list]
+    
+    def to_dict(self) -> dict:
+        base_dict = super().to_dict()
+        base_dict['pts'] = [pt.to_dict() for pt in self.pts]
+        return base_dict
+    
+    @classmethod
+    def from_list(cls, data: List[Any]) -> 'YoloPose':
+        if len(data) != 7:
+            raise ValueError("List must contain exactly 7 elements for YoloPose")
+        *base_data, pts_data = data
+        pts = [YoloPoint.from_list(pt) for pt in pts_data]
+        return cls(*base_data, pts=pts)
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'YoloPose':
+        pts_data = data.pop('pts', [])
+        pts = [YoloPoint.from_dict(pt) for pt in pts_data]
+        return cls(**data, pts=pts)
