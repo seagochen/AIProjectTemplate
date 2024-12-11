@@ -5,8 +5,7 @@ import numpy as np
 
 from common.yolo.facial_orientation import FacialOrientation2D
 from common.yolo.schema_loader import SchemaLoader
-from common.yolo.yolo_results import YoloPose, Yolo
-from common.yolo.yolo_sorted_results import YoloSorted, YoloPoseSorted
+from common.yolo.yolo_results import YoloPose, Yolo, YoloPoseSorted, YoloSorted
 
 
 class Drawer:

@@ -1,8 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 
-from common.yolo.yolo_results import Yolo, YoloPose, YoloPoint
-from common.yolo.yolo_sorted_results import YoloSorted, YoloPoseSorted
+from common.yolo.yolo_results import Yolo, YoloPose, YoloPoint, YoloPoseSorted, YoloSorted
 
 
 ###### Convert yolo.results to a list of Yolo/YoloPose objects ######
@@ -189,6 +188,39 @@ def numpy_to_pose_list(data: np.ndarray) -> List[YoloPose]:
 
 ###### Sort the results and tracker IDs to separate lists ######
 
+# def numpy_to_sorted_pose_list(sorted_data: np.ndarray) -> List[YoloPoseSorted]:
+#     """
+#     将排序后的数据转换为 YoloPoseSorted 对象的列表。
+
+#     :param sorted_data: 排序后的 numpy 数组，第一列为 tracker ID，其余列为 pose 数据
+#     :return: List[YoloPoseSorted]
+#     """
+#     if sorted_data.ndim != 2:
+#         raise ValueError("sorted_data must be a 2D numpy array")
+
+#     # The first column contains the tracker ID
+#     tracker_ids = sorted_data[:, 0].astype(int).tolist()
+
+#     # The rest of the columns contain the pose data
+#     pose_data = sorted_data[:, 1:]
+
+#     # Convert the pose data to a list of YoloPose objects
+#     pose_list = numpy_to_pose_list(pose_data)
+
+#     # Combine tracker_ids with pose_list to create YoloPoseSorted objects
+#     # pose_sorted_list = [YoloPoseSorted(oid=tid, **pose.to_dict()) for tid, pose in zip(tracker_ids, pose_list)]
+#     pose_sorted_list = []
+#     for tid, pose in enumerate(tracker_ids, pose_list):
+#         sorted = YoloPoseSorted(oid=tid, lx=pose.lx, ly=pose.ly, rx=pose.rx, ry=pose.ry,
+#                                        conf=pose.conf, cls=pose.cls, pts=pose.pts)
+#         pose_sorted_list.append(sorted)
+
+#     # pose_sorted_list = [YoloPoseSorted(oid=tid, lx=pose.lx, ly=pose.ly, rx=pose.rx, ry=pose.ry,
+#     #                                    conf=pose.conf, cls=pose.cls, pts=pose.pts)
+#     #                     for tid, pose in enumerate(tracker_ids, pose_list)]
+
+#     return pose_sorted_list
+
 def numpy_to_sorted_pose_list(sorted_data: np.ndarray) -> List[YoloPoseSorted]:
     """
     将排序后的数据转换为 YoloPoseSorted 对象的列表。
@@ -209,9 +241,14 @@ def numpy_to_sorted_pose_list(sorted_data: np.ndarray) -> List[YoloPoseSorted]:
     pose_list = numpy_to_pose_list(pose_data)
 
     # Combine tracker_ids with pose_list to create YoloPoseSorted objects
-    pose_sorted_list = [YoloPoseSorted(oid=tid, **pose.to_dict()) for tid, pose in zip(tracker_ids, pose_list)]
+    pose_sorted_list = []
+    for tid, pose in zip(tracker_ids, pose_list):
+        sorted_pose = YoloPoseSorted(oid=tid, lx=pose.lx, ly=pose.ly, rx=pose.rx, ry=pose.ry,
+                                     conf=pose.conf, cls=pose.cls, pts=pose.pts)
+        pose_sorted_list.append(sorted_pose)
 
     return pose_sorted_list
+
 
 
 def numpy_to_sorted_yolo_list(sorted_data: np.ndarray) -> List[YoloSorted]:
