@@ -1,4 +1,4 @@
-from common.yolo.yolo_results import YoloPose
+from common.yolo.ultralytics_results_wrapper import YoloPose
 from typing import List
 
 

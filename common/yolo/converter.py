@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 
-from common.yolo.yolo_results import Yolo, YoloPose, YoloPoint, YoloPoseSorted, YoloSorted
+from common.yolo.ultralytics_results_wrapper import Yolo, YoloPose, YoloPoint, YoloPoseSorted, YoloSorted
 
 
 ###### Convert yolo.results to a list of Yolo/YoloPose objects ######
