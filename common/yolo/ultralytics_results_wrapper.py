@@ -74,8 +74,8 @@ class YoloPose(Yolo):
     
     @classmethod
     def from_list(cls, data: List[Any]) -> 'YoloPose':
-        if len(data) != 7:
-            raise ValueError("List must contain exactly 7 elements for YoloPose")
+        if len(data) != 17:
+            raise ValueError("List must contain exactly 17 elements for YoloPose")
         *base_data, pts_data = data
         pts = [YoloPoint.from_list(pt) for pt in pts_data]
         return cls(*base_data, pts=pts)
@@ -102,8 +102,8 @@ class YoloPoseSorted(YoloPose):
     @classmethod
     def from_list(cls, data: List[Any]) -> 'YoloPoseSorted':
         """从列表创建 YoloPoseSorted 对象，列表第一个元素为 oid。"""
-        if len(data) != 8:  # 1 (oid) + 7 (YoloPose)
-            raise ValueError("List must contain exactly 8 elements for YoloPoseSorted")
+        if len(data) != 18:  # 1 (oid) + 17 (YoloPose字段)
+            raise ValueError("List must contain exactly 18 elements for YoloPoseSorted")
         oid, *pose_data = data
         pose = super().from_list(pose_data)
         return cls(oid=oid, **pose.to_dict())
